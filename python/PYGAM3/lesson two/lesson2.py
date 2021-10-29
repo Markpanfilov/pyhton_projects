@@ -139,7 +139,26 @@ class Background(pygame.sprite.Sprite):
 		self.rect=self.image.get_rect(topleft=(self.x,self.y))
 		self.image=self.images[self.i]
 
+class Medkit(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		pygame.sprite.Sprite.__init__(self)
+		self.x=x
+		self.y=y
+		self.state=0
+		self.images=[pygame.image.load("images/Download.png"),pygame.image.load("images/medkit_used.png")]
+		for i,image in enumerate(self.images):
+			self.images[i]=pygame.transform.scale(image,(70,70))
+		self.image=self.images[self.state]
+		self.rect=self.image.get_rect(topleft=(self.x,self.y))
+	def set_time(self):
+		self.time=time.time()
 
+	def update(self):
+		self.image=self.images[self.state]
+		self.rect=self.image.get_rect(topleft=(self.x,self.y))
+		if self.state:
+			if time.time()-self.time>19:
+				self.state=0
 
 class Health:
 	def __init__(self,hp,x,y):
@@ -218,7 +237,7 @@ class Enemy(pygame.sprite.Sprite):
 		self.past_time=0
 		self.bul=None
 		self.bulletpos()
-		self.hp=60
+		self.hp=20
 		self.live=Health(self.hp,self.x,self.y)
 	def hploss(self):
 		self.hp-=1
@@ -285,9 +304,10 @@ class Enemy(pygame.sprite.Sprite):
 
 
 
-
+medkit_coords=[(60,60),(60,height-60),(width-120,60),(width-150,height-300)]
 enemylist=[]
 
+medkit=[Medkit(60,60),Medkit(60,height-60),Medkit(width-60,60),Medkit(width-120,height-120)]
 background=Background()
 all_sprites=pygame.sprite.Group()
 enemylist.append(Enemy(50,70))
@@ -296,6 +316,7 @@ enemylist.append(Enemy(width//2-enemylist[0].width//2,150))
 robot=Robot(background)
 all_sprites.add(robot)
 all_sprites.add(background)
+all_sprites.add(medkit)
 
 
 
@@ -341,6 +362,7 @@ while True:
 			if pygame.mouse.get_pressed()[0]:
 				robot.shot()
 	all_sprites.empty()
+	all_sprites.add(medkit)
 	for enemy in enemylist:
 		enemy.getangle((robot.x,robot.y))
 	all_sprites.add(robot.bullet)
@@ -371,6 +393,19 @@ while True:
 		i += 1
 	for i in del_enemy:
 		del enemylist[i]
+	for i in medkit:
+		if pygame.sprite.collide_rect(robot,i):
+			if i.state==0:
+				i.state=1
+				i.set_time()
+				print("r.hp",robot.hp)
+				if robot.hp<19:
+					robot.hp=19
+				
+				print("r.hp",robot.hp)
+
+
+
 
 	all_sprites.add(robot)
 	all_sprites.add(enemylist)
