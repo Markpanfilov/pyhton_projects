@@ -24,6 +24,10 @@ class Robot(pygame.sprite.Sprite):
 		self.bullet=[]
 		self.i=0
 		self.frame=0
+	def revival(self):
+		self.hp=19
+		self.x= width//2-self.width//2
+		self.y= height//2+height//5
 	def hploss(self):
 		if self.hp>0:
 			self.hp-=1
@@ -319,7 +323,14 @@ all_sprites.add(background)
 all_sprites.add(medkit)
 
 
-
+def restart():
+	while len(enemylist):
+		del enemylist[0]
+	
+	enemylist.append(Enemy(50,70))	
+	enemylist.append(Enemy(width-enemylist[0].width-50,70))
+	enemylist.append(Enemy(width//2-enemylist[0].width//2,150))
+	robot.revival()
 
 
 
@@ -338,7 +349,7 @@ all_sprites.add(medkit)
 
 
 
-
+game=True
 
 
 while True:
@@ -356,65 +367,73 @@ while True:
 				robot.right()
 			if event.key==pygame.K_w and event.key==pygame.K_LSHIFT :
 				pass
+			if event.key==pygame.K_SPACE and not game:
+				game=True
+				restart()
 		if event.type==pygame.MOUSEBUTTONDOWN:
 			if pygame.mouse.get_pressed()[2]:
 				robot.forward()
 			if pygame.mouse.get_pressed()[0]:
 				robot.shot()
-	all_sprites.empty()
-	all_sprites.add(medkit)
-	for enemy in enemylist:
-		enemy.getangle((robot.x,robot.y))
-	all_sprites.add(robot.bullet)
-	for enemy in enemylist:
-		if enemy.bul!=None:	
-			all_sprites.add(enemy.bul)
-			if pygame.sprite.collide_rect(robot,enemy.bul):
-				enemy.delbul(0)
-				robot.hploss()
-	for j in range(len(enemylist)):
-		if j < len(enemylist)-1:
-			if pygame.sprite.collide_rect(enemylist[j],enemylist[j+1]):
-				i=random.randint(j,j+1)
-				enemylist[i].stop=0
-				enemylist[i].x+=30
-				enemylist[i].y+=30
-	i=0
-	del_enemy=[]
-	while i < (len(robot.bullet)):
-		for j,enemy in enumerate(enemylist):
-			if len(robot.bullet)!=i and pygame.sprite.collide_rect(robot.bullet[i], enemy):
-				robot.delete(i)
-				enemy.hploss()
-				if enemy.hp<=0:
-					del_enemy.append(j)
-					break
+	if game:
+		all_sprites.empty()
+		all_sprites.add(medkit)
+		for enemy in enemylist:
+			enemy.getangle((robot.x,robot.y))
+		all_sprites.add(robot.bullet)
+		for enemy in enemylist:
+			if enemy.bul!=None:	
+				all_sprites.add(enemy.bul)
+				if pygame.sprite.collide_rect(robot,enemy.bul):
+					enemy.delbul(0)
+					robot.hploss()
+		for j in range(len(enemylist)):
+			if j < len(enemylist)-1:
+				if pygame.sprite.collide_rect(enemylist[j],enemylist[j+1]):
+					i=random.randint(j,j+1)
+					enemylist[i].stop=0
+					enemylist[i].x+=30
+					enemylist[i].y+=30
+		i=0
+		del_enemy=[]
+		while i < (len(robot.bullet)):
+			for j,enemy in enumerate(enemylist):
+				if len(robot.bullet)!=i and pygame.sprite.collide_rect(robot.bullet[i], enemy):
+					robot.delete(i)
+					enemy.hploss()
+					if enemy.hp<=0:
+						del_enemy.append(j)
+						break
 
-		i += 1
-	for i in del_enemy:
-		del enemylist[i]
-	for i in medkit:
-		if pygame.sprite.collide_rect(robot,i):
-			if i.state==0:
-				i.state=1
-				i.set_time()
-				print("r.hp",robot.hp)
-				if robot.hp<19:
-					robot.hp=19
-				
-				print("r.hp",robot.hp)
+			i += 1
+		for i in del_enemy:
+			del enemylist[i]
+		for i in medkit:
+			if pygame.sprite.collide_rect(robot,i):
+				if i.state==0:
+					i.state=1
+					i.set_time()
+					print("r.hp",robot.hp)
+					if robot.hp<19:
+						robot.hp=19
+					
+					print("r.hp",robot.hp)
 
-
-
-
-	all_sprites.add(robot)
-	all_sprites.add(enemylist)
-	all_sprites.add(background)
+		if not len(enemylist) or not robot.hp:
+			game=False
 
 
 
+		all_sprites.add(robot)
+		all_sprites.add(enemylist)
+		all_sprites.add(background)
 
-	screen.fill(white)
-	all_sprites.update()
-	all_sprites.draw(screen)
+
+
+
+		screen.fill(white)
+		all_sprites.update()
+		all_sprites.draw(screen)
+	else:
+		screen.fill((0,255,0))
 	pygame.display.flip()
