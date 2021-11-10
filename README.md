@@ -1,1 +1,1 @@
-# pyhton_projects
+# Here are some things i did in python :P
